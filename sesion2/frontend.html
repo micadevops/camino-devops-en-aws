@@ -129,8 +129,8 @@
       btn.textContent = 'Cargando...';
       btn.disabled    = true;
 
-      // El frontend llama al backend — misma IP, puerto distinto
-      const backendUrl = 'http://' + location.hostname + ':5000/info';
+      // El frontend llama al backend — IP del backend EC2, puerto 5000
+      const backendUrl = 'BACKEND_URL/info';
 
       fetch(backendUrl + '?nombre=' + encodeURIComponent(nombre))
         .then(r => r.json())
