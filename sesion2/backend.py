@@ -13,10 +13,19 @@ app = Flask(__name__)
 
 def get_az():
     try:
-        return urllib.request.urlopen(
+        # IMDSv2: primero pedimos un token
+        token_req = urllib.request.Request(
+            'http://169.254.169.254/latest/api/token',
+            method='PUT',
+            headers={'X-aws-ec2-metadata-token-ttl-seconds': '21600'}
+        )
+        token = urllib.request.urlopen(token_req, timeout=2).read().decode()
+        # Con el token, pedimos la AZ
+        az_req = urllib.request.Request(
             'http://169.254.169.254/latest/meta-data/placement/availability-zone',
-            timeout=2
-        ).read().decode()
+            headers={'X-aws-ec2-metadata-token': token}
+        )
+        return urllib.request.urlopen(az_req, timeout=2).read().decode()
     except Exception:
         return 'local'
 
