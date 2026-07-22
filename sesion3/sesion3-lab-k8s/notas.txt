@@ -1,0 +1,38 @@
+#CREAR UN CLUSTER
+
+kind create cluster --name lab-k8s
+
+#VERIFICAR QUE EL CLUSTER FUNCIONA
+
+kubectl get nodes
+
+
+#CONSTRUIR IMAGENES
+
+docker build -t lab-backend:1.0 .
+
+docker build -t lab-frontend:1.0 .
+
+
+#CARGAR LAS IMAGENES EN KIND
+
+kind load docker-image lab-backend:1.0 --name lab-k8s
+kind load docker-image lab-frontend:1.0 --name lab-k8s
+
+
+#Desplegar en k8s
+
+kubectl apply -f . 
+
+
+#VER PODS
+
+kubectl get pods
+
+
+#FORWARD PARA CORRER
+
+
+kubectl port-forward svc/backend 5000:5000
+
+kubectl port-forward svc/frontend 8080:80
