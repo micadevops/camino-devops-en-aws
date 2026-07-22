@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De Cero a Cloud · Sesión 2</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #050A14;
+      background-image: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,.18), transparent);
+      display: flex; align-items: center; justify-content: center;
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    }
+    .card {
+      background: linear-gradient(160deg, #0F1432 0%, #080C1F 100%);
+      border: 1px solid rgba(124,58,237,0.35);
+      border-radius: 20px;
+      padding: 52px 48px;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+    .label {
+      font-size: 11px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 20px;
+    }
+    h1 { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.15; margin-bottom: 10px; }
+    .sub { font-size: 14px; color: rgba(255,255,255,.45); margin-bottom: 36px; line-height: 1.6; }
+    input {
+      width: 100%; padding: 14px 18px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px; color: #fff; font-size: 16px; outline: none;
+      margin-bottom: 14px; transition: border-color .2s;
+    }
+    input::placeholder { color: rgba(255,255,255,.3); }
+    input:focus { border-color: rgba(124,58,237,.7); }
+    button {
+      width: 100%; padding: 14px; background: #7C3AED;
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s;
+    }
+    button:hover { background: #6D28D9; }
+    button:disabled { background: #4B2DA0; cursor: not-allowed; }
+    .port-hint { margin-top: 28px; font-size: 12px; color: rgba(255,255,255,.25); }
+    .port-hint span { color: #7C3AED; font-family: monospace; }
+
+    /* Trophy card — oculto hasta que el backend responde */
+    #trophy { display: none; }
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: #9171F8;
+      background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      border-radius: 20px; padding: 5px 14px; margin-bottom: 28px;
+    }
+    .icon { font-size: 52px; margin-bottom: 20px; }
+    .trophy-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 8px;
+    }
+    .trophy-name {
+      font-size: clamp(32px, 8vw, 52px); font-weight: 800; color: #C4B5FD;
+      text-shadow: 0 0 40px rgba(167,139,250,.4); margin-bottom: 6px;
+    }
+    .trophy-sub { font-size: 14px; color: rgba(255,255,255,.4); margin-bottom: 32px; }
+    .info-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+    .info-item {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px; padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .info-key {
+      font-size: 11px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: rgba(255,255,255,.35);
+    }
+    .info-val { font-size: 13px; font-weight: 700; color: #fff; font-family: monospace; }
+    .hashtag { font-size: 13px; color: rgba(255,255,255,.25); letter-spacing: .04em; }
+    .hashtag span { color: #7C3AED; }
+    .card.breathe { animation: breathe 4s ease-in-out infinite; }
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 40px rgba(124,58,237,.12); }
+      50%       { box-shadow: 0 0 70px rgba(124,58,237,.28); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FRONTEND: formulario servido por Apache en :80 -->
+  <div id="form-section" class="card">
+    <div class="label">De Cero a Cloud · Sesión 2</div>
+    <h1>Deployá tu primera página</h1>
+    <p class="sub">Ingresá tu nombre y el backend va a generar tu página personalizada.</p>
+    <form id="myForm">
+      <input id="nombre" name="nombre" placeholder="Tu nombre" autocomplete="off" required>
+      <button type="submit" id="btn">Generar mi página →</button>
+    </form>
+    <p class="port-hint">
+      Este form vive en <span>:80</span> · el backend vive en <span>:5000</span>
+    </p>
+  </div>
+
+  <!-- TROPHY CARD: el frontend la renderiza con los datos que devuelve el backend -->
+  <div id="trophy" class="card breathe">
+    <div class="badge">Deployado en AWS · EC2</div>
+    <div class="icon">🚀</div>
+    <div class="trophy-label">Primera vez en la nube</div>
+    <div class="trophy-name" id="tr-nombre"></div>
+    <p class="trophy-sub">lanzó y configuró su primera instancia EC2</p>
+    <div class="info-row">
+      <div class="info-item">
+        <span class="info-key">Availability Zone</span>
+        <span class="info-val" id="tr-az"></span>
+      </div>
+      <div class="info-item">
+        <span class="info-key">Deployado el</span>
+        <span class="info-val" id="tr-fecha"></span>
+      </div>
+    </div>
+    <p class="hashtag"><span>#DeCeroaCloud</span> · AWS Girls UG UY</p>
+  </div>
+
+  <script>
+    document.getElementById('myForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const nombre = document.getElementById('nombre').value.trim();
+      const btn    = document.getElementById('btn');
+      btn.textContent = 'Cargando...';
+      btn.disabled    = true;
+
+      // El frontend llama al backend — IP del backend EC2, puerto 5000
+      const backendUrl = 'http://localhost:5000/info';
+
+      fetch(backendUrl + '?nombre=' + encodeURIComponent(nombre))
+        .then(r => r.json())
+        .then(data => {
+          // El frontend recibe el JSON y renderiza la trophy card
+          document.getElementById('tr-nombre').textContent = data.nombre;
+          document.getElementById('tr-az').textContent     = data.az;
+          document.getElementById('tr-fecha').textContent  = data.fecha;
+
+          document.getElementById('form-section').style.display = 'none';
+          document.getElementById('trophy').style.display        = 'block';
+        })
+        .catch(err => {
+          btn.textContent = 'Generar mi página →';
+          btn.disabled    = false;
+          alert('No se pudo conectar al backend: ' + err.message);
+        });
+    });
+  </script>
+
+</body>
+</html>
