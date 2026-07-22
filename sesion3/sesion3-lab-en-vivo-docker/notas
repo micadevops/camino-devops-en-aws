@@ -1,0 +1,26 @@
+#Docker build
+
+docker build -t mi-app-sesion3 .
+
+######################################
+
+#Ver imagen creada
+
+docker images
+
+######################################
+
+#Correr imagen en nuevo contenedor en puerto 5000
+
+docker run -d -p 5000:5000 --name sesion3 mi-app-sesion3
+
+######################################
+
+#Entrar al contenedor con bash
+
+docker exec -it sesion3 bash
+
+######################################
+#Logs en tiempo real 
+
+docker logs -f sesion3
