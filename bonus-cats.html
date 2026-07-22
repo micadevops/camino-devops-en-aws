@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bonus · Cat API · De Cero a Cloud</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;background:#050A14;
+      background-image:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(124,58,237,.15),transparent);
+      font-family:-apple-system,'Segoe UI',system-ui,sans-serif;
+      color:#fff;padding:40px 20px;
+    }
+    .page{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+
+    /* header */
+    .top-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+      color:#9171F8;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);
+      border-radius:20px;padding:6px 14px;align-self:flex-start;
+    }
+    h1{font-size:28px;font-weight:800;color:#fff;line-height:1.15}
+    h1 span{color:#C4B5FD}
+    .subtitle{font-size:14px;color:rgba(255,255,255,.45);line-height:1.6}
+
+    /* api call box */
+    .api-box{
+      background:rgba(12,16,40,.8);border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;padding:16px;
+    }
+    .api-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px}
+    .api-url{
+      font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:12px;
+      color:#A8D8C8;line-height:1.7;word-break:break-all;
+    }
+    .api-url .method{color:#9171F8;font-weight:700;margin-right:8px}
+    .api-url .key{color:#F59E0B}
+
+    /* cat card */
+    .cat-card{
+      background:linear-gradient(160deg,#0F1432 0%,#080C1F 100%);
+      border:1px solid rgba(124,58,237,.3);border-radius:20px;overflow:hidden;
+    }
+    .cat-img-wrap{width:100%;aspect-ratio:4/3;background:#0C1028;position:relative;overflow:hidden}
+    .cat-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s}
+    .cat-img-wrap img.loading{opacity:0}
+    .cat-skeleton{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:52px;color:rgba(255,255,255,.06);
+    }
+    .cat-info{padding:20px 24px}
+    .breed-name{font-size:22px;font-weight:800;color:#C4B5FD;margin-bottom:4px}
+    .breed-name.empty{color:rgba(255,255,255,.2);font-size:14px;font-weight:400}
+    .breed-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+    .tag{
+      font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);
+    }
+    .tag span{color:rgba(255,255,255,.85);font-weight:700}
+
+    /* json viewer */
+    .json-toggle{
+      display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;
+      font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px;
+      text-transform:uppercase;letter-spacing:.08em;transition:color .2s;width:100%;
+    }
+    .json-toggle:hover{color:rgba(255,255,255,.5)}
+    .json-toggle .arrow{transition:transform .2s;font-size:9px}
+    .json-toggle.open .arrow{transform:rotate(90deg)}
+    .json-box{
+      display:none;margin:0 24px 16px;background:#0C1028;border-radius:10px;padding:14px;
+      font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:11.5px;
+      color:#A8D8C8;line-height:1.8;overflow-x:auto;max-height:220px;overflow-y:auto;
+    }
+    .json-box.open{display:block}
+    .json-key{color:#9171F8}
+    .json-str{color:#86EFAC}
+    .json-num{color:#FCA5A5}
+
+    /* button */
+    .btn{
+      width:100%;padding:16px;background:#7C3AED;color:#fff;border:none;
+      border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;
+      transition:background .2s,transform .1s;letter-spacing:.02em;
+    }
+    .btn:hover{background:#6D28D9}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{background:#4B2DA0;cursor:not-allowed;opacity:.7}
+
+    /* status */
+    .status{
+      text-align:center;font-size:12px;color:rgba(255,255,255,.25);
+      font-family:'SF Mono','Fira Code',monospace;
+    }
+    .status.err{color:#F87171}
+    .status.ok{color:#4ADE80}
+
+    /* concept box */
+    .concept{
+      background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);
+      border-radius:12px;padding:16px 18px;
+    }
+    .concept-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C3AED;margin-bottom:10px}
+    .concept ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+    .concept li{font-size:13px;color:rgba(255,255,255,.55);display:flex;gap:8px}
+    .concept li::before{content:'→';color:#7C3AED;flex-shrink:0;font-weight:700}
+    .concept li strong{color:rgba(255,255,255,.85)}
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div>
+    <div class="top-badge">🐱 Bonus · Cat API</div>
+  </div>
+
+  <div>
+    <h1>Llamando a una <span>API externa</span></h1>
+    <p class="subtitle" style="margin-top:8px">El frontend hace un fetch a The Cat API y muestra la respuesta JSON en pantalla — sin backend propio.</p>
+  </div>
+
+  <!-- API call box -->
+  <div class="api-box">
+    <div class="api-label">Request que hace el browser</div>
+    <div class="api-url">
+      <span class="method">GET</span>https://api.thecatapi.com/v1/images/search<br>
+      &nbsp;&nbsp;?has_breeds=true&amp;limit=1<br>
+      &nbsp;&nbsp;&amp;x-api-key: <span class="key">DEMO-API-KEY</span>
+    </div>
+  </div>
+
+  <!-- Cat card -->
+  <div class="cat-card">
+    <div class="cat-img-wrap">
+      <div class="cat-skeleton">🐱</div>
+      <img id="cat-img" src="" alt="gatito" class="loading">
+    </div>
+    <div class="cat-info">
+      <div class="breed-name empty" id="breed-name">Presioná el botón para cargar un gatito</div>
+      <div class="breed-tags" id="breed-tags"></div>
+    </div>
+
+    <button class="json-toggle" id="json-btn" onclick="toggleJson()">
+      <span class="arrow">▶</span> Ver respuesta JSON del backend
+    </button>
+    <pre class="json-box" id="json-box"></pre>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <button class="btn" id="btn" onclick="fetchCat()">🐱 Mostrar gatito</button>
+
+  <!-- Concept -->
+  <div class="concept">
+    <div class="concept-label">Lo que está pasando</div>
+    <ul>
+      <li>El browser hace un <strong>GET request</strong> a The Cat API</li>
+      <li>La API devuelve un <strong>JSON</strong> con la URL de la imagen y datos de la raza</li>
+      <li>El frontend <strong>parsea el JSON</strong> y renderiza la imagen y los datos</li>
+      <li>No hay backend propio — el frontend habla <strong>directo con la API externa</strong></li>
+      <li>El <strong>API key</strong> va en el header — así la API sabe quién está pidiendo</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  let lastJson = null;
+
+  async function fetchCat() {
+    const btn    = document.getElementById('btn');
+    const status = document.getElementById('status');
+    const img    = document.getElementById('cat-img');
+
+    btn.disabled    = true;
+    btn.textContent = 'Cargando...';
+    status.className = 'status';
+    status.textContent = 'Haciendo fetch a api.thecatapi.com...';
+
+    try {
+      const res  = await fetch(
+        'https://api.thecatapi.com/v1/images/search?has_breeds=true&limit=1',
+        { headers: { 'x-api-key': 'DEMO-API-KEY' } }
+      );
+      const data = await res.json();
+      const cat  = data[0];
+      lastJson   = data;
+
+      // imagen
+      img.classList.add('loading');
+      img.onload = () => img.classList.remove('loading');
+      img.src    = cat.url;
+
+      // raza
+      const breed = cat.breeds && cat.breeds[0];
+      const nameEl = document.getElementById('breed-name');
+      const tagsEl = document.getElementById('breed-tags');
+
+      if (breed) {
+        nameEl.textContent  = breed.name;
+        nameEl.className    = 'breed-name';
+        tagsEl.innerHTML    = [
+          breed.origin      ? `Origen: <span>${breed.origin}</span>`      : '',
+          breed.life_span   ? `Vida: <span>${breed.life_span}</span>`     : '',
+          breed.weight?.metric ? `Peso: <span>${breed.weight.metric} kg</span>` : '',
+          typeof breed.intelligence !== 'undefined' ? `Inteligencia: <span>${'★'.repeat(breed.intelligence)}${'☆'.repeat(5-breed.intelligence)}</span>` : '',
+        ]
+        .filter(Boolean)
+        .map(t => `<span class="tag">${t}</span>`)
+        .join('');
+      } else {
+        nameEl.textContent = 'Sin datos de raza';
+        nameEl.className   = 'breed-name empty';
+        tagsEl.innerHTML   = '';
+      }
+
+      // json viewer
+      if (document.getElementById('json-box').classList.contains('open')) {
+        renderJson(data);
+      }
+
+      status.className    = 'status ok';
+      status.textContent  = `✓ 200 OK · ${JSON.stringify(cat).length} bytes`;
+      btn.textContent     = '🐱 Otro gatito';
+    } catch(e) {
+      status.className    = 'status err';
+      status.textContent  = '✗ Error: ' + e.message;
+      btn.textContent     = '🐱 Mostrar gatito';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function toggleJson() {
+    const box = document.getElementById('json-box');
+    const tog = document.getElementById('json-btn');
+    const open = box.classList.toggle('open');
+    tog.classList.toggle('open', open);
+    if (open && lastJson) renderJson(lastJson);
+  }
+
+  function renderJson(data) {
+    const box = document.getElementById('json-box');
+    box.innerHTML = syntaxHL(JSON.stringify(data, null, 2));
+  }
+
+  function syntaxHL(json) {
+    return json
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+        if (/^"/.test(m)) {
+          if (/:$/.test(m)) return `<span class="json-key">${m}</span>`;
+          return `<span class="json-str">${m}</span>`;
+        }
+        return `<span class="json-num">${m}</span>`;
+      });
+  }
+</script>
+</body>
+</html>
